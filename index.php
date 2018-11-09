@@ -29,7 +29,9 @@ $options = [
     'charts'           => true,          // show gauge chart or just big numbers
     'debounce_rate'    => 250,           // milliseconds after key press to send keyup event when filtering
     'cookie_name'      => 'opcachegui',  // name of cookie
-    'cookie_ttl'       => 365            // days to store cookie
+    'cookie_ttl'       => 365,           // days to store cookie
+    'user'             => null,          // enable auth if not empty
+    'password'         => null,          // enable auth if not empty
 ];
 
 /*
@@ -60,13 +62,47 @@ class OpCacheService
         'charts'           => true,
         'debounce_rate'    => 250,
         'cookie_name'      => 'opcachegui',
-        'cookie_ttl'       => 365
+        'cookie_ttl'       => 365,
+        'user'             => null,
+        'password'         => null,
     ];
 
     private function __construct($options = [])
     {
         $this->options = array_merge($this->defaults, $options);
+
+        if (!$this->checkAuth()) {
+            header('HTTP/1.1 401 Unauthorized');
+            header('WWW-Authenticate: Basic realm="Restricted Area"');
+            echo '<html><body><h1>401 Unauthorized</h1><p>Wrong username or password.</p></body></html>';
+            exit;
+        }
+
         $this->data = $this->compileState();
+    }
+
+    public function checkAuth()
+    {
+        if (!empty($this->options['user'] && !empty($this->options['password']))) {
+            $user = $password = '';
+
+            if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
+                $user = $_SERVER['PHP_AUTH_USER'];
+                $password = $_SERVER['PHP_AUTH_PW'];
+            } elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+                $auth = $_SERVER['HTTP_AUTHORIZATION'];
+                list($user, $password) = explode(':', base64_decode(substr($auth, strpos($auth, " ") + 1)));
+            } elseif (!empty($_SERVER['Authorization'])) {
+                $auth = $_SERVER['Authorization'];
+                list($user, $password) = explode(':', base64_decode(substr($auth, strpos($auth, " ") + 1)));
+            }
+
+            if (!$user || !$password || $user !== $this->options['user'] || $password !== $this->options['password']) {
+
+                return false;
+            }
+        }
+        return true;
     }
 
     public static function init($options = [])

@@ -7,6 +7,9 @@ If you like this software or find it helpful then please consider [signing up to
 
 ## What's new
 
+**Version 2.5.0**\
+Adds basic authentication
+
 **Version 2.4.0**\
 Adds cookie store for the real-time state allowing real-time to be activated on load.  Cookie name and TTL length can be adjusted in the config
 
@@ -52,7 +55,9 @@ $options = [
     'size_precision'   => 2,     // Digits after decimal point
     'size_space'       => false, // have '1MB' or '1 MB' when showing sizes
     'charts'           => true,  // show gauge chart or just big numbers
-    'debounce_rate'    => 250    // milliseconds after key press to send keyup event when filtering
+    'debounce_rate'    => 250,   // milliseconds after key press to send keyup event when filtering
+    'user'             => null,  // enable auth if not empty
+    'password'         => null,  // enable auth if not empty
 ];
 ```
 
